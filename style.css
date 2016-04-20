@@ -1,0 +1,32 @@
+table {
+	border-spacing: 5px;
+}
+
+table, th, td {
+	border: 1px solid black;
+	text-align: center;
+}
+
+.center {
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.vertical-align {
+	vertical-align:top;
+}
+
+th {
+	padding-top:15px;
+	padding-bottom:15px;
+	text-align:center;
+}
+
+iframe {
+	align: center;
+}
+
+input[type=submit]{
+	width:10em;
+	heigh:2em;
+}

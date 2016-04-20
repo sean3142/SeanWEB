@@ -1,0 +1,129 @@
+<html>
+<head>
+<?php	//Query the Database, populate $data array
+$servername = "192.168.63.212"; $username = "php"; $password = "php";
+$conn = new mysqli($servername, $username, $password);
+if($conn->connect_error) {die("Connection to Pi SQL Server Failed Error: $conn->connect_error");}
+
+$query = "SELECT
+	sample_year,
+	sample_month,
+	sample_day,
+	sample_hour,
+	sample_min,
+	TC_1
+	FROM tempdb.tempdata
+	ORDER BY sample_year DESC,
+	sample_month DESC,
+	sample_day DESC,
+	sample_hour DESC,
+	sample_min DESC;
+	";
+
+if(!$result = $conn->query($query)) {die("Query to Database failed with error: $conn->error");}
+
+$table = array();
+while($row = $result->fetch_assoc()){
+	$table[] = $row;
+}
+
+$conn->close();
+?>
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+
+      google.load('visualization', '1.0', {'packages':['corechart', 'gauge', 'controls']});
+      google.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+
+	var data = new google.visualization.arrayToDataTable( [ ['Sample Date', 'Cupboard'],
+		<?php
+	// Line
+	foreach( $table as $rowi=>$row){
+		echo "[new Date(" . $row['sample_year'] . "," .
+			$row['sample_month'] . "," .
+			$row['sample_day'] . "," .
+			$row['sample_hour'] . "," .
+			$row['sample_min'] .
+			")," . $row['TC_1'] . "],";
+		}?>], false);
+ 	      var options = {'title':'Cupboard Temperature',
+                       'width':1200,
+                       'height':600
+			};
+
+        var chart = new google.visualization.ChartWrapper(document.getElementById('chart_div'));
+//        chart.draw(data, options);
+
+
+	// Guage
+        var gauge_data = new google.visualization.arrayToDataTable([
+          ['Label', 'Value'],
+          ['TC_1', <?php echo $table[0]['TC_1']; ?> ]
+        ]);
+
+        var gauge_options = {
+          width: 400, height: 120, redFrom: 28, redTo: 32,
+          yellowFrom:24, yellowTo: 28, greenFrom:18, greenTo:24,
+	    minorTicks: 2, min: 10, max: 32
+        };
+
+        var gaugechart = new google.visualization.Gauge(document.getElementById('gauge_div'));
+        gaugechart.draw(gauge_data, gauge_options);
+
+
+	// Dashboard
+	var dash = new google.visualization.Dashboard(document.getElementById('dash_div'));
+
+        var dateRangeSlider = new google.visualization.ControlWrapper({
+          'controlType': 'ChartRangeFilter',
+          'containerId': 'control_div',
+          'options': {
+            'filterColumnLabel': 'Sample Date'
+          }
+        });
+
+
+
+	dash.bind(dateRangeSlider,chart)
+	dash.draw(data);
+
+
+};
+    </script>
+</head>
+
+<body>
+<table border="1">
+<tr><td>
+<?php
+		echo $table[0]['TC_1'];
+ ?>
+</td></tr>
+<tr><td>
+<?php
+		echo $table[0]['sample_hour'] . ":" . $table[1]['sample_min'];
+ ?>
+</td></tr>
+
+</table>
+<tr>
+<td>
+	<div id="gauge_div" style="width: 600px; height: 160px;"></div>
+</td>
+<td>
+    <div id="dash_div" style="width: 600px; height: 160px;">
+
+	<div id="chart_div" style="width: 600px; height: 160px;"></div>
+	<div id="control_div" style="width: 600px; height: 160px;"></div>
+
+	</div>
+
+</td></tr>
+
+</table>
+
+</body>
+</html>
